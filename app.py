@@ -38,6 +38,26 @@ def proxy_verify(phone):
         return cors(jsonify({'ok': False, 'error': str(e)})), 502
 
 
+@app.route('/admin/verify/<phone>/reset', methods=['OPTIONS'])
+def preflight_reset(phone):
+    return cors(jsonify({}))
+
+
+@app.route('/admin/verify/<phone>/reset', methods=['POST'])
+def proxy_reset(phone):
+    if request.headers.get('x-oaat-secret') != SECRET:
+        return cors(jsonify({'ok': False, 'error': 'unauthorized'})), 401
+
+    try:
+        r = requests.post(
+            f'{SOHAIL_API}/admin/verify/{phone}/reset',
+            timeout=15
+        )
+        return cors(jsonify(r.json())), r.status_code
+    except Exception as e:
+        return cors(jsonify({'ok': False, 'error': str(e)})), 502
+
+
 @app.route('/health')
 def health():
     return jsonify({'ok': True})
