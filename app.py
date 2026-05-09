@@ -104,8 +104,7 @@ def send_acceptance_email():
         msg['To']      = email
         msg.attach(MIMEText(html, 'html'))
 
-        with smtplib.SMTP('smtp.zoho.in', 587, timeout=30) as s:
-            s.starttls()
+        with smtplib.SMTP_SSL('smtp.zoho.in', 465, timeout=30) as s:
             s.login(ZOHO_EMAIL, ZOHO_APP_PASSWORD)
             s.sendmail(ZOHO_EMAIL, email, msg.as_bytes())
 
