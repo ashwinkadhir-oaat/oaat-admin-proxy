@@ -1,17 +1,14 @@
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 import requests
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-SECRET            = os.environ.get('OAAT_SECRET', 'Ash@6194')
-SOHAIL_API        = 'https://api.oneatatime.io'
-ZOHO_EMAIL        = os.environ.get('ZOHO_EMAIL', 'support@oneatatime.io')
-ZOHO_APP_PASSWORD = os.environ.get('ZOHO_APP_PASSWORD', '')
+SECRET          = os.environ.get('OAAT_SECRET', 'Ash@6194')
+SOHAIL_API      = 'https://api.oneatatime.io'
+RESEND_API_KEY  = os.environ.get('RESEND_API_KEY', '')
+FROM_EMAIL      = 'One at a Time <support@oneatatime.io>'
 
 
 def cors(response):
@@ -98,17 +95,20 @@ def send_acceptance_email():
 </html>"""
 
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = "You're in ✨ Welcome to One at a Time"
-        msg['From']    = ZOHO_EMAIL
-        msg['To']      = email
-        msg.attach(MIMEText(html, 'html'))
-
-        with smtplib.SMTP_SSL('smtp.zoho.in', 465, timeout=30) as s:
-            s.login(ZOHO_EMAIL, ZOHO_APP_PASSWORD)
-            s.sendmail(ZOHO_EMAIL, email, msg.as_bytes())
-
-        return cors(jsonify({'ok': True}))
+        r = requests.post(
+            'https://api.resend.com/emails',
+            headers={'Authorization': f'Bearer {RESEND_API_KEY}', 'Content-Type': 'application/json'},
+            json={
+                'from': FROM_EMAIL,
+                'to': [email],
+                'subject': "You're in ✨ Welcome to One at a Time",
+                'html': html
+            },
+            timeout=30
+        )
+        if r.ok:
+            return cors(jsonify({'ok': True}))
+        return cors(jsonify({'ok': False, 'error': r.text})), 502
     except Exception as e:
         return cors(jsonify({'ok': False, 'error': str(e)})), 502
 
