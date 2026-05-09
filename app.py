@@ -104,10 +104,10 @@ def send_acceptance_email():
         msg['To']      = email
         msg.attach(MIMEText(html, 'html'))
 
-        with smtplib.SMTP('smtp.zoho.in', 587) as s:
+        with smtplib.SMTP('smtp.zoho.in', 587, timeout=30) as s:
             s.starttls()
             s.login(ZOHO_EMAIL, ZOHO_APP_PASSWORD)
-            s.sendmail(ZOHO_EMAIL, email, msg.as_string())
+            s.sendmail(ZOHO_EMAIL, email, msg.as_bytes())
 
         return cors(jsonify({'ok': True}))
     except Exception as e:
